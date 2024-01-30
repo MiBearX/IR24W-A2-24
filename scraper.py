@@ -1,5 +1,8 @@
 import re
 from urllib.parse import urlparse
+from bs4 import BeautifulSoup, SoupStrainer
+import requests
+from utils.response import Response
 
 def scraper(url, resp):
     links = extract_next_links(url, resp)
@@ -15,7 +18,15 @@ def extract_next_links(url, resp):
     #         resp.raw_response.url: the url, again
     #         resp.raw_response.content: the content of the page!
     # Return a list with the hyperlinks (as strings) scrapped from resp.raw_response.content
-    return list()
+    urlList = [] # we return this
+    currentPage = requests.get(url) # make http request, maybe use resp.raw_response.content instead
+    soup = BeautifulSoup(currentPage.content, "html.parser", parse_only=SoupStrainer('a')) # create beautiful soup object and filter to get only a tags
+    for elem in soup:
+        if elem.has_attr("href"): # if element has link
+            link = elem["href"]
+            print(link)
+            urlList.append(link)
+    return urlList
 
 def is_valid(url):
     # Decide whether to crawl this url or not. 
@@ -38,3 +49,12 @@ def is_valid(url):
     except TypeError:
         print ("TypeError for ", parsed)
         raise
+
+if __name__ == "__main__":
+    test = {"url": "https://www.ics.uci.edu", # create dict to create Response object
+            "status": 0,
+            "error": None
+            }
+    testResponse = Response(test) # dummy Response object so extract_next_links can be called
+    urls = extract_next_links("https://www.ics.uci.edu", testResponse)
+    
