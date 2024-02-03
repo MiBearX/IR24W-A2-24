@@ -10,7 +10,7 @@ def scraper(url, resp):
     for x in link_list:
         print(x)
     return []
-
+#
 def extract_next_links(url, resp):
     # Implementation required.
     # url: the URL that was used to get the page
