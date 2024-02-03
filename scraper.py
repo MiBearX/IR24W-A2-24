@@ -6,7 +6,8 @@ from utils.response import Response
 
 def scraper(url, resp):
     links = extract_next_links(url, resp)
-    return [link for link in links if is_valid(link)]
+    # Removing the fragment section by splitting by # and getting the part before it
+    return [link.split('#')[0] for link in links if is_valid(link)]
 
 def extract_next_links(url, resp):
     # Implementation required.
@@ -19,13 +20,18 @@ def extract_next_links(url, resp):
     #         resp.raw_response.content: the content of the page!
     # Return a list with the hyperlinks (as strings) scrapped from resp.raw_response.content
     urlList = [] # we return this
+    print(resp.raw_response)
     currentPage = requests.get(url) # make http request, maybe use resp.raw_response.content instead
     soup = BeautifulSoup(currentPage.content, "html.parser", parse_only=SoupStrainer('a')) # create beautiful soup object and filter to get only a tags
+    # print(currentPage.content)
+    count = 0
     for elem in soup:
-        if elem.has_attr("href"): # if element has link
+        if elem.has_attr("href") and elem["href"] not in urlList: # if element has link
             link = elem["href"]
             print(link)
+            count += 1
             urlList.append(link)
+    print(count)
     return urlList
 
 def is_valid(url):
@@ -56,5 +62,5 @@ if __name__ == "__main__":
             "error": None
             }
     testResponse = Response(test) # dummy Response object so extract_next_links can be called
-    urls = extract_next_links("https://www.ics.uci.edu", testResponse)
+    print(scraper("https://www.ics.uci.edu", testResponse))
     
