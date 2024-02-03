@@ -55,6 +55,7 @@ if __name__ == "__main__":
             "status": 0,
             "error": None
             }
+    print("hello World")
     testResponse = Response(test) # dummy Response object so extract_next_links can be called
     urls = extract_next_links("https://www.ics.uci.edu", testResponse)
     
