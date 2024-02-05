@@ -1,13 +1,15 @@
 import re
 from urllib.parse import urlparse
 from bs4 import BeautifulSoup, SoupStrainer
-import requests
+
 from utils.response import Response
 
 def scraper(url, resp):
     links = extract_next_links(url, resp)
     # Removing the fragment section by splitting by # and getting the part before it
-    return [link.split('#')[0] for link in links if is_valid(link)]
+    links_list = [link.split('#')[0] for link in links if is_valid(link)]
+    print(links_list)
+    return []
 
 def extract_next_links(url, resp):
     # Implementation required.
@@ -20,15 +22,27 @@ def extract_next_links(url, resp):
     #         resp.raw_response.content: the content of the page!
     # Return a list with the hyperlinks (as strings) scrapped from resp.raw_response.content
     urlList = [] # we return this
-    print(resp.raw_response)
-    currentPage = requests.get(url) # make http request, maybe use resp.raw_response.content instead
-    soup = BeautifulSoup(currentPage.content, "html.parser", parse_only=SoupStrainer('a')) # create beautiful soup object and filter to get only a tags
+
+    # Checking to see if the status code is of a valid type
+    if resp.status != 200:
+        if resp.status >= 400: # All status codes in the 4xx series are the result of an error, so we skip these urls
+            return urlList
+        elif resp.status == 204: # Page with no content (a blank page)
+            return urlList
+        elif resp.status >= 300: # Check for redirection issues
+            # FINISH THIS
+            print("300")
+        
+    print("STATUS")
+    print(type(resp.status))
+    print(resp.status)
+    print(resp.raw_response.content)
+    soup = BeautifulSoup(resp.raw_response.content, "html.parser", parse_only=SoupStrainer('a')) # create beautiful soup object and filter to get only a tags
     # print(currentPage.content)
     count = 0
     for elem in soup:
         if elem.has_attr("href") and elem["href"] not in urlList: # if element has link
             link = elem["href"]
-            print(link)
             count += 1
             urlList.append(link)
     print(count)
@@ -39,6 +53,15 @@ def is_valid(url):
     # If you decide to crawl it, return True; otherwise return False.
     # There are already some conditions that return False.
     try:
+         # Checking to see if the current page is in the domain
+        icsSearch = re.search(".ics.uci.edu/", url)
+        csSearch = re.search(".cs.uci.edu/", url)
+        informaticsSearch = re.search(".informatics.uci.edu/", url)
+        statsSearch = re.search(".stat.uci.edu/", url)
+
+        if (icsSearch is None and csSearch is None and informaticsSearch is None and statsSearch is None):
+            return False
+
         parsed = urlparse(url)
         if parsed.scheme not in set(["http", "https"]):
             return False
