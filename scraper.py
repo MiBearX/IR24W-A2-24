@@ -8,8 +8,9 @@ def scraper(url, resp):
     links = extract_next_links(url, resp)
     # Removing the fragment section by splitting by # and getting the part before it
     links_list = [link.split('#')[0] for link in links if is_valid(link)]
-    print(links_list)
-    return []
+    for x in links_list:
+        print(x)
+    return links_list
 
 def extract_next_links(url, resp):
     # Implementation required.
@@ -34,9 +35,7 @@ def extract_next_links(url, resp):
             print("300")
         
     print("STATUS")
-    print(type(resp.status))
     print(resp.status)
-    print(resp.raw_response.content)
     soup = BeautifulSoup(resp.raw_response.content, "html.parser", parse_only=SoupStrainer('a')) # create beautiful soup object and filter to get only a tags
     # print(currentPage.content)
     count = 0
@@ -58,6 +57,10 @@ def is_valid(url):
         csSearch = re.search(".cs.uci.edu/", url)
         informaticsSearch = re.search(".informatics.uci.edu/", url)
         statsSearch = re.search(".stat.uci.edu/", url)
+
+        # # Checking for a calendar url
+        if len(re.findall(r"[/]*\d{1,4}[/-]{1}0*\d{0,2}[/-]{1}0*\d{1,2}[/]*", "https://wics.ics.uci.edu/")) != 0:
+            return False
 
         if (icsSearch is None and csSearch is None and informaticsSearch is None and statsSearch is None):
             return False
