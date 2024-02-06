@@ -1,12 +1,16 @@
 import re
 from urllib.parse import urlparse
 from bs4 import BeautifulSoup, SoupStrainer
-import requests
 from utils.response import Response
+
 
 def scraper(url, resp):
     links = extract_next_links(url, resp)
-    return [link for link in links if is_valid(link)]
+    # Removing the fragment section by splitting by # and getting the part before it
+    links_list = [link.split('#')[0] for link in links if is_valid(link)]
+    #print(links_list)
+    return []
+
 
 def extract_next_links(url, resp):
     # Implementation required.
@@ -19,20 +23,58 @@ def extract_next_links(url, resp):
     #         resp.raw_response.content: the content of the page!
     # Return a list with the hyperlinks (as strings) scrapped from resp.raw_response.content
     urlList = [] # we return this
-    currentPage = requests.get(url) # make http request, maybe use resp.raw_response.content instead
-    soup = BeautifulSoup(currentPage.content, "html.parser", parse_only=SoupStrainer('a')) # create beautiful soup object and filter to get only a tags
+
+    # Checking to see if the status code is of a valid type
+    if resp.status != 200:
+        if resp.status >= 400: # All status codes in the 4xx series are the result of an error, so we skip these urls
+            return urlList
+        elif resp.status == 204: # Page with no content (a blank page)
+            return urlList
+        elif resp.status >= 300: # Check for redirection issues
+            # FINISH THIS
+            print("300")
+        
+    # print("STATUS")
+    # print(type(resp.status))
+    # print(resp.status)
+    cleaned_texts = [resp.raw_response.content] # get the content of the page
+    newList = []
+    for text in cleaned_texts: # filter all html tags, also newline, carriage return, tab and \xa0 (unicode) chars. 
+       soup = BeautifulSoup(text, 'html.parser')
+       newList.append(soup.get_text(separator='\n').strip().replace('\n', '').replace('\r', '').replace('\t', '').replace('\xa0', ''))
+ 
+    combined_text = '\n'.join(newList) #make the list as a single list to be able to use re.findall, or tokenize function from PartA
+    english_words = re.findall(r"[a-zA-Z0-9]+", combined_text) #filter all non-alphanumeric chars
+    print(english_words) #print to check
+
+    #print(resp.raw_response.content) #4 pages
+    soup = BeautifulSoup(resp.raw_response.content, "html.parser", parse_only=SoupStrainer('a')) # create beautiful soup object and filter to get only a tags
+    #print(currentPage.content)
+    count = 0
     for elem in soup:
-        if elem.has_attr("href"): # if element has link
+        if elem.has_attr("href") and elem["href"] not in urlList: # if element has link
             link = elem["href"]
-            print(link)
+            count += 1
             urlList.append(link)
+   # print(count)
+    
     return urlList
+
 
 def is_valid(url):
     # Decide whether to crawl this url or not. 
     # If you decide to crawl it, return True; otherwise return False.
     # There are already some conditions that return False.
     try:
+         # Checking to see if the current page is in the domain
+        icsSearch = re.search(".ics.uci.edu/", url)
+        csSearch = re.search(".cs.uci.edu/", url)
+        informaticsSearch = re.search(".informatics.uci.edu/", url)
+        statsSearch = re.search(".stat.uci.edu/", url)
+
+        if (icsSearch is None and csSearch is None and informaticsSearch is None and statsSearch is None):
+            return False
+
         parsed = urlparse(url)
         if parsed.scheme not in set(["http", "https"]):
             return False
@@ -55,7 +97,6 @@ if __name__ == "__main__":
             "status": 0,
             "error": None
             }
-    print("hello World")
     testResponse = Response(test) # dummy Response object so extract_next_links can be called
-    urls = extract_next_links("https://www.ics.uci.edu", testResponse)
+    print(scraper("https://www.ics.uci.edu", testResponse))
     
