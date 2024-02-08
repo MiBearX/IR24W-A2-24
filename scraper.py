@@ -33,9 +33,46 @@ def extract_next_links(url, resp):
         elif resp.status >= 300: # Check for redirection issues
             # FINISH THIS
             print("300")
-        
-    print("STATUS")
-    print(resp.status)
+
+    cleaned_texts = [resp.raw_response.content] # get the content of the page
+    newList = []
+    for text in cleaned_texts: # filter all html tags, also newline, carriage return, tab and \xa0 (unicode) chars. 
+       soup = BeautifulSoup(text, 'html.parser')
+       newList.append(soup.get_text(separator='\n').strip().replace('\n', '').replace('\r', '').replace('\t', '').replace('\xa0', ''))
+
+    combined_text = '\n'.join(newList) #make the list as a single list to be able to use re.findall, or tokenize function from PartA
+    english_words = re.findall(r"[a-zA-Z0-9]+", combined_text) #filter all non-alphanumeric chars
+
+    all_words_length = len(english_words)
+
+    # Checking how many words there are
+    if (all_words_length > 100000):
+        return urlList
+
+    # This is the set of stop words that we check
+    stop_words_set = {"a", "about","above","after","again","against","all","am","an","and","any","are","aren't","as","at","be","because","been","before","being",
+        "below","between","both","but","by","can't","cannot","could","couldn't","did","didn't","do","does","doesn't","doing","don't","down","during",
+        "each","few","for","from","further","had","hadn't","has","hasn't","have","haven't","having","he","he'd","he'll","he's","her","here","here's",
+        "hers","herself","him","himself","his","how","how's","i","i'd","i'll","i'm","i've","if","in","into","is","isn't","it","it's","its","itself",
+        "let's","me","more","most","mustn't","my","myself","no","nor","not","of","off","on","once","only","or","other","ought","our","ours", "ourselves","out",
+        "over","own","same","shan't","she","she'd","she'll","she's","should","shouldn't","so","some","such","than","that","that's","the","their","theirs","them",
+        "themselves","then","there","there's","these","they","they'd","they'll","they're","they've","this","those","through","to","too","under","until","up","very",
+        "was","wasn't","we","we'd","we'll","we're","we've","were","weren't","what","what's","when","when's","where","where's","which","while","who","who's","whom","why",
+        "why's","with","won't","would","wouldn't","you","you'd","you'll","you're","you've","your","yours","yourself","yourselves"}
+    
+    # Looping through all of the words and deleting stop words
+    english_words = [word for word in english_words if word not in stop_words_set]
+    # for key, i in enumerate(english_words):
+    #     if i in stop_words_set:
+    #         del english_words[key]
+
+    # Checking if the ratio of the number of valid words over the total number of words is over the 30 percent threshold
+    valid_words_length = len(english_words)
+
+    if (valid_words_length/all_words_length < 0.3):
+        return urlList
+
+
     soup = BeautifulSoup(resp.raw_response.content, "html.parser", parse_only=SoupStrainer('a')) # create beautiful soup object and filter to get only a tags
     # print(currentPage.content)
     count = 0
@@ -48,7 +85,7 @@ def extract_next_links(url, resp):
     return urlList
 
 def is_valid(url):
-    # Decide whether to crawl this url or not. 
+    # Decide whether to crawl this url or not.
     # If you decide to crawl it, return True; otherwise return False.
     # There are already some conditions that return False.
     try:
