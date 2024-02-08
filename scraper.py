@@ -22,6 +22,7 @@ def extract_next_links(url, resp):
     #         resp.raw_response.content: the content of the page!
     # Return a list with the hyperlinks (as strings) scrapped from resp.raw_response.content
     print(type(resp.raw_response.content))
+    print(resp.raw_response.content)
     urlList = [] # we return this
     # currentPage = requests.get(url) # make http request, maybe use resp.raw_response.content instead
     soup = BeautifulSoup(resp.raw_response.content, "html.parser", parse_only=SoupStrainer('a')) # create beautiful soup object and filter to get only a tags
