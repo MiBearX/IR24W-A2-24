@@ -4,12 +4,15 @@ from bs4 import BeautifulSoup, SoupStrainer
 
 from utils.response import Response
 
+class webScraperStorage:
+    totalURLCount = 0
+    newList = []
+    checkSumList = []
+
 def scraper(url, resp):
     links = extract_next_links(url, resp)
     # Removing the fragment section by splitting by # and getting the part before it
     links_list = [link.split('#')[0] for link in links if is_valid(link)]
-    for x in links_list:
-        print(x)
     return links_list
 
 def extract_next_links(url, resp):
@@ -48,6 +51,17 @@ def extract_next_links(url, resp):
     # Checking how many words there are
     if (all_words_length > 100000):
         return urlList
+    
+    checkSumTotal = 0
+    # Using checksum in order to check for exact duplicates of pages
+    for word in english_words:
+        for letter in word:
+            checkSumTotal += ord(letter)
+
+    if checkSumTotal in webScraperStorage.checkSumList:
+        return urlList
+    else:
+        webScraperStorage.checkSumList.append(checkSumTotal)
 
     # This is the set of stop words that we check
     stop_words_set = {"a", "about","above","after","again","against","all","am","an","and","any","are","aren't","as","at","be","because","been","before","being",
@@ -69,6 +83,9 @@ def extract_next_links(url, resp):
     # Checking if the ratio of the number of valid words over the total number of words is over the 30 percent threshold
     valid_words_length = len(english_words)
 
+    if (all_words_length == 0):
+        return urlList
+
     if (valid_words_length/all_words_length < 0.3):
         return urlList
 
@@ -81,7 +98,16 @@ def extract_next_links(url, resp):
             link = elem["href"]
             count += 1
             urlList.append(link)
-    print(count)
+    # print(count)
+    print()
+    print()
+    print(resp.raw_response.url)
+    print()
+    print()
+    if resp.raw_response.url in newList:
+        raise ValueError('A very specific bad thing happened.')
+    webScraperStorage.newList.append(resp.raw_response.url)
+    webScraperStorage.totalURLCount += 1
     return urlList
 
 def is_valid(url):
@@ -95,9 +121,11 @@ def is_valid(url):
         informaticsSearch = re.search(".informatics.uci.edu/", url)
         statsSearch = re.search(".stat.uci.edu/", url)
 
-        # # Checking for a calendar url
-        if len(re.findall(r"[/]*\d{1,4}[/-]{1}0*\d{0,2}[/-]{1}0*\d{1,2}[/]*", "https://wics.ics.uci.edu/")) != 0:
+        # Checking for a calendar url
+        if len(re.findall(r"[/]*\d{1,4}[/-]{1}0*\d{0,2}[/-]{1}0*\d{1,2}[/]*", url)) != 0:
             return False
+        
+        # Checking for a pattern of either page= or p=
 
         if (icsSearch is None and csSearch is None and informaticsSearch is None and statsSearch is None):
             return False
@@ -126,4 +154,6 @@ if __name__ == "__main__":
             }
     testResponse = Response(test) # dummy Response object so extract_next_links can be called
     print(scraper("https://www.ics.uci.edu", testResponse))
+
+
     
