@@ -1,11 +1,15 @@
 import re
 from urllib.parse import urlparse
 from bs4 import BeautifulSoup, SoupStrainer
-
+import sys
 from utils.response import Response
 
+
+# This is a storage class in order to store important information
 class webScraperStorage:
     totalURLCount = 0
+    longestPage = 0
+    longestNumWords = 0
     newList = []
     checkSumList = []
 
@@ -52,6 +56,10 @@ def extract_next_links(url, resp):
     if (all_words_length > 100000):
         return urlList
     
+    if all_words_length > webScraperStorage.longestPage:
+        webScraperStorage.longestPage = resp.raw_response.url
+        webScraperStorage.longestNumWords = all_words_length
+    
     checkSumTotal = 0
     # Using checksum in order to check for exact duplicates of pages
     for word in english_words:
@@ -86,7 +94,7 @@ def extract_next_links(url, resp):
     if (all_words_length == 0):
         return urlList
 
-    if (valid_words_length/all_words_length < 0.3):
+    if (valid_words_length/all_words_length < 0.15):
         return urlList
 
 
@@ -116,16 +124,14 @@ def is_valid(url):
     # There are already some conditions that return False.
     try:
          # Checking to see if the current page is in the domain
-        icsSearch = re.search(".ics.uci.edu/", url)
-        csSearch = re.search(".cs.uci.edu/", url)
-        informaticsSearch = re.search(".informatics.uci.edu/", url)
-        statsSearch = re.search(".stat.uci.edu/", url)
+        icsSearch = re.search("\.ics\.uci\.edu/", url)
+        csSearch = re.search("\.cs\.uci\.edu/", url)
+        informaticsSearch = re.search("\.informatics\.uci\.edu/", url)
+        statsSearch = re.search("\.stat\.uci\.edu/", url)
 
         # Checking for a calendar url
         if len(re.findall(r"[/]*\d{1,4}[/-]{1}0*\d{0,2}[/-]{1}0*\d{1,2}[/]*", url)) != 0:
             return False
-        
-        # Checking for a pattern of either page= or p=
 
         if (icsSearch is None and csSearch is None and informaticsSearch is None and statsSearch is None):
             return False
@@ -148,12 +154,24 @@ def is_valid(url):
         raise
 
 if __name__ == "__main__":
-    test = {"url": "https://www.ics.uci.edu", # create dict to create Response object
-            "status": 0,
-            "error": None
-            }
-    testResponse = Response(test) # dummy Response object so extract_next_links can be called
-    print(scraper("https://www.ics.uci.edu", testResponse))
+    icsSearch = re.search("\.ics\.uci\.edu/", "https://ngs.ics.uci.edu/to-brazil-thinking-computer-vision-in-developing-countries")
+    csSearch = re.search("\.cs\.uci\.edu/", "https://ngs.ics.uci.edu/to-brazil-thinking-computer-vision-in-developing-countries")
+    informaticsSearch = re.search("\.informatics\.uci\.edu/", "https://ngs.ics.uci.edu/to-brazil-thinking-computer-vision-in-developing-countries")
+    statsSearch = re.search("\.stat\.uci\.edu/", "https://ngs.ics.uci.edu/to-brazil-thinking-computer-vision-in-developing-countries")
+    
+
+    if (icsSearch or csSearch or informaticsSearch or statsSearch):
+            print("False")
+            sys.exit(0)
+
+    print("true")
+
+    # test = {"url": "https://www.ics.uci.edu", # create dict to create Response object
+    #         "status": 0,
+    #         "error": None
+    #         }
+    # testResponse = Response(test) # dummy Response object so extract_next_links can be called
+    # print(scraper("https://www.ics.uci.edu", testResponse))
 
 
     
