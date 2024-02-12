@@ -3,6 +3,7 @@ from urllib.parse import urlparse
 from bs4 import BeautifulSoup, SoupStrainer
 import sys
 from utils.response import Response
+from PartA import PartAClass
 
 
 # This is a storage class in order to store important information
@@ -12,6 +13,9 @@ class webScraperStorage:
     longestNumWords = 0
     newList = []
     checkSumList = []
+    simHashList = []
+    wordFrequencyDict = dict()
+    ics_subdomain_freq = {}
 
 def scraper(url, resp):
     links = extract_next_links(url, resp)
@@ -29,7 +33,7 @@ def extract_next_links(url, resp):
     #         resp.raw_response.url: the url, again
     #         resp.raw_response.content: the content of the page!
     # Return a list with the hyperlinks (as strings) scrapped from resp.raw_response.content
-    urlList = [] # we return this
+    urlList = [] # we return this, which is the list of urls from the current page if it is a valid url with valid content
 
     # Checking to see if the status code is of a valid type
     if resp.status != 200:
@@ -38,9 +42,9 @@ def extract_next_links(url, resp):
         elif resp.status == 204: # Page with no content (a blank page)
             return urlList
         elif resp.status >= 300: # Check for redirection issues
-            # FINISH THIS
-            print("300")
+            return urlList
 
+    # Getting the full content of the body of the page
     cleaned_texts = [resp.raw_response.content] # get the content of the page
     newList = []
     for text in cleaned_texts: # filter all html tags, also newline, carriage return, tab and \xa0 (unicode) chars. 
@@ -52,11 +56,15 @@ def extract_next_links(url, resp):
 
     all_words_length = len(english_words)
 
-    # Checking how many words there are
-    if (all_words_length > 100000):
+
+
+    # Checking if the number of words is greater than 1 million, which should be a page we should skip since it is a very large file
+    if (all_words_length > 1000000):
         return urlList
-    
-    if all_words_length > webScraperStorage.longestPage:
+
+
+    # Updating the longest number of words and the longest page if the current page has more words 
+    if all_words_length > webScraperStorage.longestNumWords:
         webScraperStorage.longestPage = resp.raw_response.url
         webScraperStorage.longestNumWords = all_words_length
     
@@ -66,10 +74,18 @@ def extract_next_links(url, resp):
         for letter in word:
             checkSumTotal += ord(letter)
 
+    # This if statement checks if the checksum already exists in the checksum list or not
     if checkSumTotal in webScraperStorage.checkSumList:
         return urlList
     else:
         webScraperStorage.checkSumList.append(checkSumTotal)
+
+    # Checking for a page full of just the same word, which should be filtered out as it is considered a low-value page
+    updated_english_words = [word for word in english_words if word != english_words[0]] # Checking if the current word is equal to the first word (checks for the above scenario)
+
+    # If the page only consists of one word, don't scrape the page for any url links
+    if len(updated_english_words) == 1:
+        return urlList
 
     # This is the set of stop words that we check
     stop_words_set = {"a", "about","above","after","again","against","all","am","an","and","any","are","aren't","as","at","be","because","been","before","being",
@@ -84,14 +100,16 @@ def extract_next_links(url, resp):
     
     # Looping through all of the words and deleting stop words
     english_words = [word for word in english_words if word not in stop_words_set]
-    # for key, i in enumerate(english_words):
-    #     if i in stop_words_set:
-    #         del english_words[key]
 
-    # Checking if the ratio of the number of valid words over the total number of words is over the 30 percent threshold
+    # Adding the word frequencies into the dictionary of words that showed up and their current frequencies
+    frequencyDict = PartAClass.computeWordFrequencies(None, english_words)
+    webScraperStorage.wordFrequencyDict.update(frequencyDict)
+
+
+    # Checking if the ratio of the number of valid words over the total number of words is over the 15 percent threshold
     valid_words_length = len(english_words)
 
-    if (all_words_length == 0):
+    if (all_words_length == 0): # Prevents a division by zero exception from happening
         return urlList
 
     if (valid_words_length/all_words_length < 0.15):
@@ -99,23 +117,43 @@ def extract_next_links(url, resp):
 
 
     soup = BeautifulSoup(resp.raw_response.content, "html.parser", parse_only=SoupStrainer('a')) # create beautiful soup object and filter to get only a tags
-    # print(currentPage.content)
+
+
+    # Appending all of the urls found on the current page 
     count = 0
     for elem in soup:
-        if elem.has_attr("href") and elem["href"] not in urlList: # if element has link
+        if elem.has_attr("href") and elem["href"] not in urlList: # checking if the element has a link
             link = elem["href"]
             count += 1
             urlList.append(link)
-    # print(count)
+
     print()
     print()
     print(resp.raw_response.url)
     print()
     print()
+
+    # Making sure the same url doesn't show up twice
     if resp.raw_response.url in newList:
         raise ValueError('A very specific bad thing happened.')
     webScraperStorage.newList.append(resp.raw_response.url)
     webScraperStorage.totalURLCount += 1
+
+    
+    ics_subdomain = re.search("https*:\/\/.+\.ics\.uci\.edu", resp.raw_response.url)   #If there is a subdomain for ics.uci.edu
+
+    # Additionally filtering out twitter and facebook links that passed the check, or links that lead to one of them using share=facebook for example
+    if(ics_subdomain) and re.search("(facebook)|(twitter)|(share=facebook)|(share=twitter)", resp.raw_response.url) is not None:
+        ics_subdomain = ics_subdomain.group() #Get the subdomian as a str
+        if ics_subdomain not in webScraperStorage.ics_subdomain_freq: 
+            webScraperStorage.ics_subdomain_freq[ics_subdomain] = 1 #Set page count to 1 if subdomain not seen before
+        else:
+            webScraperStorage.ics_subdomain_freq[ics_subdomain] += 1 #increment page count by 1
+
+    # Printing the dictionary for testing
+    sorted_token_info = sorted(webScraperStorage.ics_subdomain_freq.items(), key=lambda word_and_freq : word_and_freq[0])
+    print(sorted_token_info)
+
     return urlList
 
 def is_valid(url):
@@ -129,13 +167,22 @@ def is_valid(url):
         informaticsSearch = re.search("\.informatics\.uci\.edu/", url)
         statsSearch = re.search("\.stat\.uci\.edu/", url)
 
+        if (icsSearch is None and csSearch is None and informaticsSearch is None and statsSearch is None):
+            return False
+        
         # Checking for a calendar url
         if len(re.findall(r"[/]*\d{1,4}[/-]{1}0*\d{0,2}[/-]{1}0*\d{1,2}[/]*", url)) != 0:
             return False
-
-        if (icsSearch is None and csSearch is None and informaticsSearch is None and statsSearch is None):
+        
+        # Additionally filtering out twitter and facebook links that passed the check, or links that lead to one of them using share=facebook for example
+        if re.search("(facebook)|(twitter)|(share=facebook)|(share=twitter)", url) is not None:
+            return False
+        
+        # Filtering out ical export links
+        if re.search("\?ical=1", url) is not None:
             return False
 
+        # Filters out urls that lead to any files with these file extensions
         parsed = urlparse(url)
         if parsed.scheme not in set(["http", "https"]):
             return False
@@ -145,7 +192,8 @@ def is_valid(url):
             + r"|wav|avi|mov|mpeg|ram|m4v|mkv|ogg|ogv|pdf"
             + r"|ps|eps|tex|ppt|pptx|doc|docx|xls|xlsx|names"
             + r"|data|dat|exe|bz2|tar|msi|bin|7z|psd|dmg|iso"
-            + r"|epub|dll|cnf|tgz|sha1"
+            + r"|epub|dll|cnf|tgz|sha1|ppsx"
+            
             + r"|thmx|mso|arff|rtf|jar|csv"
             + r"|rm|smil|wmv|swf|wma|zip|rar|gz)$", parsed.path.lower())
 
@@ -158,13 +206,11 @@ if __name__ == "__main__":
     csSearch = re.search("\.cs\.uci\.edu/", "https://ngs.ics.uci.edu/to-brazil-thinking-computer-vision-in-developing-countries")
     informaticsSearch = re.search("\.informatics\.uci\.edu/", "https://ngs.ics.uci.edu/to-brazil-thinking-computer-vision-in-developing-countries")
     statsSearch = re.search("\.stat\.uci\.edu/", "https://ngs.ics.uci.edu/to-brazil-thinking-computer-vision-in-developing-countries")
-    
+
+    print("TEST" + str(is_valid("https://home.cs.colorado.edu/~alko5368/lecturesCSCI2820/mathbook.pdf")))   
 
     if (icsSearch or csSearch or informaticsSearch or statsSearch):
             print("False")
-            sys.exit(0)
-
-    print("true")
 
     # test = {"url": "https://www.ics.uci.edu", # create dict to create Response object
     #         "status": 0,

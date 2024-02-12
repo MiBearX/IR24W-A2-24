@@ -16,3 +16,7 @@
 - Alice Tran @alicetran1221
   - UCInetID: alicet5
   - Student ID: 92943532
+
+- Artashes Artashesian @777Artashes777
+  - UCInetID: aartashe
+  - Student ID: 94267908
