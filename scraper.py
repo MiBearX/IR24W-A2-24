@@ -139,9 +139,9 @@ def extract_next_links(url, resp):
                 vectorIndexTotal += frequencyDict[list(frequencyDict.keys())[key]]
 
         if vectorIndexTotal > 0:
-            vectorHash += "0"
-        else:
             vectorHash += "1"
+        else:
+            vectorHash += "0"
         
         vectorIndexTotal = 0
 
