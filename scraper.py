@@ -115,6 +115,41 @@ def extract_next_links(url, resp):
     if (valid_words_length/all_words_length < 0.15):
         return urlList
 
+    # Using simhash to check for near-duplicate pages
+    currentHashesList = []
+    currentHash = ""
+
+    # Calculating the hash for each word
+    for word in frequencyDict.keys():
+        for i in range(2, 34):
+            if (hash(word) % i) % 2 == 0:
+                currentHash += "1"
+            else:
+                currentHash += "0"
+        currentHashesList.append(currentHash[::-1])
+        currentHash = ""
+
+    vectorIndexTotal = 0 # The total of the current index in the vector
+    vectorHash = "" # The resulting hash of the vector
+    for i in range(0, 32):
+        for key, chosenHash in enumerate(currentHashesList):
+            if chosenHash[i] == "0":
+                vectorIndexTotal -= frequencyDict[list(frequencyDict.keys())[key]]
+            else:
+                vectorIndexTotal += frequencyDict[list(frequencyDict.keys())[key]]
+
+        if vectorIndexTotal > 0:
+            vectorHash += "0"
+        else:
+            vectorHash += "1"
+        
+        vectorIndexTotal = 0
+
+    if vectorHash in webScraperStorage.simHashList:
+        return urlList
+    else:
+        webScraperStorage.simHashList.append(vectorHash)
+
 
     soup = BeautifulSoup(resp.raw_response.content, "html.parser", parse_only=SoupStrainer('a')) # create beautiful soup object and filter to get only a tags
 
@@ -143,7 +178,7 @@ def extract_next_links(url, resp):
     ics_subdomain = re.search("https*:\/\/.+\.ics\.uci\.edu", resp.raw_response.url)   #If there is a subdomain for ics.uci.edu
 
     # Additionally filtering out twitter and facebook links that passed the check, or links that lead to one of them using share=facebook for example
-    if(ics_subdomain) and re.search("(facebook)|(twitter)|(share=facebook)|(share=twitter)", resp.raw_response.url) is not None:
+    if(ics_subdomain) and re.search("(facebook)|(twitter)|(share=facebook)|(share=twitter)", resp.raw_response.url) is None:
         ics_subdomain = ics_subdomain.group() #Get the subdomian as a str
         if ics_subdomain not in webScraperStorage.ics_subdomain_freq: 
             webScraperStorage.ics_subdomain_freq[ics_subdomain] = 1 #Set page count to 1 if subdomain not seen before
