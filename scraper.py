@@ -1,3 +1,4 @@
+import binascii
 import re
 from urllib.parse import urlparse
 from bs4 import BeautifulSoup, SoupStrainer
@@ -49,7 +50,7 @@ def extract_next_links(url, resp):
     newList = []
     for text in cleaned_texts: # filter all html tags, also newline, carriage return, tab and \xa0 (unicode) chars. 
        soup = BeautifulSoup(text, 'html.parser')
-       newList.append(soup.get_text(separator='\n').strip().replace('\n', '').replace('\r', '').replace('\t', '').replace('\xa0', ''))
+       newList.append(soup.get_text(separator='\n').strip().replace('\n', ' ').replace('\r', ' ').replace('\t', ' ').replace('\xa0', ' '))
 
     combined_text = '\n'.join(newList) #make the list as a single list to be able to use re.findall, or tokenize function from PartA
     english_words = re.findall(r"[a-zA-Z0-9]+", combined_text) #filter all non-alphanumeric chars
@@ -119,15 +120,14 @@ def extract_next_links(url, resp):
     currentHashesList = []
     currentHash = ""
 
+    def thirty_two_bit_hash(input_string):
+        hash = binascii.crc32(input_string.encode('utf-8')) & 0xFFFFFFFF
+        binary_hash = bin(hash)[2:].zfill(32)
+        return binary_hash
+
     # Calculating the hash for each word
     for word in frequencyDict.keys():
-        for i in range(2, 34):
-            if (hash(word) % i) % 2 == 0:
-                currentHash += "1"
-            else:
-                currentHash += "0"
-        currentHashesList.append(currentHash[::-1])
-        currentHash = ""
+        currentHashesList.append(thirty_two_bit_hash(word))
 
     vectorIndexTotal = 0 # The total of the current index in the vector
     vectorHash = "" # The resulting hash of the vector
@@ -235,24 +235,4 @@ def is_valid(url):
     except TypeError:
         print ("TypeError for ", parsed)
         raise
-
-if __name__ == "__main__":
-    icsSearch = re.search("\.ics\.uci\.edu/", "https://ngs.ics.uci.edu/to-brazil-thinking-computer-vision-in-developing-countries")
-    csSearch = re.search("\.cs\.uci\.edu/", "https://ngs.ics.uci.edu/to-brazil-thinking-computer-vision-in-developing-countries")
-    informaticsSearch = re.search("\.informatics\.uci\.edu/", "https://ngs.ics.uci.edu/to-brazil-thinking-computer-vision-in-developing-countries")
-    statsSearch = re.search("\.stat\.uci\.edu/", "https://ngs.ics.uci.edu/to-brazil-thinking-computer-vision-in-developing-countries")
-
-    print("TEST" + str(is_valid("https://home.cs.colorado.edu/~alko5368/lecturesCSCI2820/mathbook.pdf")))   
-
-    if (icsSearch or csSearch or informaticsSearch or statsSearch):
-            print("False")
-
-    # test = {"url": "https://www.ics.uci.edu", # create dict to create Response object
-    #         "status": 0,
-    #         "error": None
-    #         }
-    # testResponse = Response(test) # dummy Response object so extract_next_links can be called
-    # print(scraper("https://www.ics.uci.edu", testResponse))
-
-
     
