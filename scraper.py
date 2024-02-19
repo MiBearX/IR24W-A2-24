@@ -5,6 +5,7 @@ from bs4 import BeautifulSoup, SoupStrainer
 import sys
 from utils.response import Response
 from PartA import PartAClass
+from collections import Counter
 
 
 # This is a storage class in order to store important information
@@ -15,7 +16,7 @@ class webScraperStorage:
     newList = []
     checkSumList = []
     simHashList = []
-    wordFrequencyDict = dict()
+    wordFrequencyDict = Counter()
     ics_subdomain_freq = {}
 
 def scraper(url, resp):
@@ -103,8 +104,8 @@ def extract_next_links(url, resp):
     english_words = [word for word in english_words if word not in stop_words_set]
 
     # Adding the word frequencies into the dictionary of words that showed up and their current frequencies
-    frequencyDict = PartAClass.computeWordFrequencies(None, english_words)
-    webScraperStorage.wordFrequencyDict.update(frequencyDict)
+    frequencyDict = Counter(PartAClass.computeWordFrequencies(None, english_words))
+    webScraperStorage.wordFrequencyDict = webScraperStorage.wordFrequencyDict + frequencyDict 
 
 
     # Checking if the ratio of the number of valid words over the total number of words is over the 15 percent threshold
