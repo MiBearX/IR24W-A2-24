@@ -48,10 +48,10 @@ class PartAClass:
         # in the dictionary. If it exists, increment the frequency, else add it to the dictionary. Searching in a dictionary
         # in Python version 3+ takes O(1) time when using the "in" keyword, so this loop takes a total of O(N) time
         for token in tokensListInput:
-            if token in tokensMap:
-                tokensMap[token] += 1
+            if token.lower() in tokensMap:
+                tokensMap[token.lower()] += 1
             else:
-                tokensMap[token] = 1
+                tokensMap[token.lower()] = 1
 
         return tokensMap
 
