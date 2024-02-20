@@ -51,9 +51,9 @@ def extract_next_links(url, resp):
     newList = []
     for text in cleaned_texts: # filter all html tags, also newline, carriage return, tab and \xa0 (unicode) chars. 
        soup = BeautifulSoup(text, 'html.parser')
-       newList.append(soup.get_text(separator='\n').strip().replace('\n', ' ').replace('\r', ' ').replace('\t', ' ').replace('\xa0', ' '))
+       newList.append(soup.get_text(separator='\n').lower().strip().replace('\n', ' ').replace('\r', ' ').replace('\t', ' ').replace('\xa0', ' '))
 
-    combined_text = '\n'.join(newList) #make the list as a single list to be able to use re.findall, or tokenize function from PartA
+    combined_text = ' '.join(newList) #make the list as a single list to be able to use re.findall, or tokenize function from PartA
     english_words = re.findall(r"[a-zA-Z0-9]+", combined_text) #filter all non-alphanumeric chars
 
     all_words_length = len(english_words)
