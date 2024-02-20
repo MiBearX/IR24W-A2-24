@@ -1,0 +1,24 @@
+Web Crawler Report
+How many unique pages did you find? Uniqueness for the purposes of this assignment is ONLY established by the URL, but discarding the fragment part. So, for example, http://www.ics.uci.edu#aaa and http://www.ics.uci.edu#bbb are the same URL. Even if you implement additional methods for textual similarity detection, please keep considering the above definition of unique pages for the purposes of counting the unique pages in this assignment.
+
+For unique pages, we found 6416.
+
+
+What is the longest page in terms of the number of words? (HTML markup doesn’t count as words)
+The longest page was https://www.ics.uci.edu/~kay/wordlist.txt.
+
+
+What are the 50 most common words in the entire set of pages crawled under these domains ? (Ignore English stop words, which can be found, for example, here) Submit the list of common words ordered by frequency.
+
+
+[('s', 134217), ('0', 100778), ('1', 67032), ('2', 38908), ('research', 30673), ('3', 21051), ('2022', 20354), ('computer', 19268), ('4', 16565), ('2021', 16215), ('d', 16084), ('software', 15880), ('2018', 15706), ('student', 15656), ('information', 15392), ('2020', 15057), ('b', 14961), ('5', 14398), ('students', 14119), ('2019', 14101), ('2016', 13827), ('t', 13522), ('uci', 13456), ('2017', 13454), ('7', 12561), ('2015', 12501), ('september', 12375), ('graduate', 12131), ('engineering', 12108), ('will', 12042), ('science', 11964), ('may', 11955), ('m', 11780), ('news', 11733), ('informatics', 11655), ('data', 11603), ('e', 11595), ('undergraduate', 11503), ('6', 11358), ('october', 10977), ('design', 10731), ('ramesh', 9877), ('june', 9775), ('department', 9722), ('july', 9659), ('10', 9620), ('n', 9586), ('can', 9314), ('november', 9086), ('ph', 9075)]
+
+
+	
+How many subdomains did you find in the ics.uci.edu domain? Submit the list of subdomains ordered alphabetically and the number of unique pages detected in each subdomain. The content of this list should be lines containing URL, number, for example:
+http://vision.ics.uci.edu, 10 (not the actual number here)
+
+
+[('http://archive.ics.uci.edu', 2), ('http://asterix.ics.uci.edu', 2), ('http://cert.ics.uci.edu', 2), ('http://computableplant.ics.uci.edu', 28), ('http://esl.ics.uci.edu', 1), ('http://flamingo.ics.uci.edu', 9), ('http://fr.ics.uci.edu', 3), ('http://graphics.ics.uci.edu', 2), ('http://hobbes.ics.uci.edu', 1), ('http://i-sensorium.ics.uci.edu', 1), ('http://malek.ics.uci.edu', 1), ('http://mondego.ics.uci.edu', 3), ('http://perennialpolycultures.ics.uci.edu', 1), ('http://plrg.ics.uci.edu', 83), ('http://riscit.ics.uci.edu', 1), ('http://sdcl.ics.uci.edu', 188), ('http://seal.ics.uci.edu', 5), ('http://sli.ics.uci.edu', 284), ('http://sourcerer.ics.uci.edu', 1), ('http://stairs.ics.uci.edu', 1), ('http://tastier.ics.uci.edu', 1), ('http://vision.ics.uci.edu', 6), ('http://www-db.ics.uci.edu', 10), ('https://accessibility.ics.uci.edu', 1), ('https://acoi.ics.uci.edu', 54), ('https://aiclub.ics.uci.edu', 1), ('https://archive.ics.uci.edu', 1), ('https://asterix.ics.uci.edu', 3), ('https://cbcl.ics.uci.edu', 3), ('https://chenli.ics.uci.edu', 3), ('https://cml.ics.uci.edu', 115), ('https://code.ics.uci.edu', 13), ('https://cradl.ics.uci.edu', 19), ('https://create.ics.uci.edu', 5), ('https://cwicsocal18.ics.uci.edu', 10), ('https://cyberclub.ics.uci.edu', 1), ('https://dgillen.ics.uci.edu', 10), ('https://duttgroup.ics.uci.edu', 46), ('https://duttgroup.ics.uci.edu/wp-login.php?redirect_to=https%3A%2F%2Fduttgroup.ics.uci.edu', 1), ('https://emj.ics.uci.edu', 36), ('https://evoke.ics.uci.edu', 4), ('https://frost.ics.uci.edu', 1), ('https://grape.ics.uci.edu', 74), ('https://hack.ics.uci.edu', 1), ('https://hai.ics.uci.edu', 1), ('https://hpi.ics.uci.edu', 3), ('https://iasl.ics.uci.edu', 18), ('https://intranet.ics.uci.edu', 1), ('https://ipf.ics.uci.edu', 2), ('https://ipubmed.ics.uci.edu', 1), ('https://isg.ics.uci.edu', 137), ('https://jgarcia.ics.uci.edu', 24), ('https://luci.ics.uci.edu', 4), ('https://mcs.ics.uci.edu', 80), ('https://mds.ics.uci.edu', 19), ('https://mhcid.ics.uci.edu', 18), ('https://mswe.ics.uci.edu', 15), ('https://nalini.ics.uci.edu', 7), ('https://ngs.ics.uci.edu', 1573), ('https://redmiles.ics.uci.edu', 4), ('https://sdcl.ics.uci.edu', 2), ('https://seal.ics.uci.edu', 1), ('https://sli.ics.uci.edu', 24), ('https://studentcouncil.ics.uci.edu', 2), ('https://support.ics.uci.edu', 1), ('https://swiki.ics.uci.edu', 3), ('https://tad.ics.uci.edu', 1), ('https://tippersweb.ics.uci.edu', 2), ('https://transformativeplay.ics.uci.edu', 56), ('https://unite.ics.uci.edu', 10), ('https://vision.ics.uci.edu', 1), ('https://wearablegames.ics.uci.edu', 11), ('https://wics.ics.uci.edu', 509), ('https://wiki.ics.uci.edu', 2), ('https://www.ics.uci.edu', 1070)]
+
+
